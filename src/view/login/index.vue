@@ -83,7 +83,7 @@
                   @click="submitForm"
                 >登 录</el-button>
               </el-form-item>
-              <el-form-item class="mb-6">
+              <!-- <el-form-item class="mb-6">
                 <el-button
                   class="shadow shadow-active h-11 w-full"
                   type="primary"
@@ -91,6 +91,14 @@
                   @click="checkInit"
                 >前往初始化</el-button>
 
+              </el-form-item> -->
+              <el-form-item class="mb-6">
+                <el-button
+                  class="shadow shadow-active h-11 w-full"
+                  type="primary"
+                  size="large"
+                  @click="register"
+                >注册</el-button>
               </el-form-item>
             </el-form>
           </div>
@@ -107,6 +115,49 @@
       <div class="links items-center justify-center gap-2 hidden md:flex">
       </div>
     </BottomInfo>
+
+    <el-dialog
+      v-model="registerVisible"
+      title="用户注册"
+      width="30%"
+    >
+      <el-form
+        ref="registerForm"
+        :model="registerFormData"
+        :rules="registerRules"
+        label-width="80px"
+      >
+        <el-form-item label="用户类型" prop="userType">
+          <el-select v-model="registerFormData.userType" placeholder="请选择用户类型" class="w-full">
+            <el-option label="普通用户" value="user" />
+            <el-option label="商家" value="business" />
+            <el-option label="监管机构" value="regulator" />
+          </el-select>
+        </el-form-item>
+        <el-form-item 
+          v-if="['user', 'business'].includes(registerFormData.userType)"
+          label="钱包名称" 
+          prop="walletName"
+        >
+          <el-input v-model="registerFormData.walletName" placeholder="请输入钱包名称" />
+        </el-form-item>
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="registerFormData.username" placeholder="请输入用户名" />
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="registerFormData.password" type="password" placeholder="请输入密码" />
+        </el-form-item>
+        <el-form-item label="确认密码" prop="confirmPassword">
+          <el-input v-model="registerFormData.confirmPassword" type="password" placeholder="请确认密码" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="registerVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleRegister">确认</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -118,6 +169,7 @@ import { reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/pinia/modules/user'
+import axios from 'axios'
 
 defineOptions({
   name: "Login",
@@ -204,6 +256,107 @@ const submitForm = () => {
 
     // 登陆成功
     return true
+  })
+}
+
+// 注册相关数据
+const registerVisible = ref(false)
+const registerForm = ref(null)
+const registerFormData = reactive({
+  username: '',
+  password: '',
+  confirmPassword: '',
+  userType: '',
+  walletName: ''
+})
+
+// 注册表单验证规则
+const registerRules = reactive({
+  userType: [
+    { required: true, message: '请选择用户类型', trigger: 'change' }
+  ],
+  walletName: [
+    { required: true, message: '请输入钱包名称', trigger: 'blur' },
+    { min: 3, message: '钱包名称长度不能小于3个字符', trigger: 'blur' }
+  ],
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 5, message: '用户名长度不能小于5个字符', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, message: '密码长度不能小于6个字符', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { required: true, message: '请确认密码', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        if (value !== registerFormData.password) {
+          callback(new Error('两次输入的密码不一致'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur'
+    }
+  ]
+})
+
+// 修改原来的 register 函数
+const register = () => {
+  registerVisible.value = true
+}
+
+// 处理注册提交
+const handleRegister = () => {
+  registerForm.value.validate(async (valid) => {
+    if (valid) {
+      // TODO: 调用注册 API，需要传递用户类型和钱包名称
+      const registerData = {
+        userName: registerFormData.username,
+        password: registerFormData.password,
+        nickName: registerFormData.username,
+        headerImg: '',
+        walletName: registerFormData.walletName,
+        authorityId: registerFormData.userType === 'user' ? 1 : registerFormData.userType === 'business' ? 3 : 2,
+        authorityIds: [registerFormData.userType === 'user' ? 1 : registerFormData.userType === 'business' ? 3 : 2],
+        enabled: 1
+      }
+      console.log('注册信息：', registerData)
+      try {
+        const response = await axios.post('http://45.8.113.140:3338/api/v1/hufu/register', registerData)
+        console.log('注册结果：', response)
+
+        if (response.data.msg === "注册成功") {
+        ElMessage({
+          type: 'success',
+          message: '注册成功'
+        })
+        } else {
+          ElMessage({
+            type: 'error',
+            message: response.data.msg
+          })
+        }
+      } catch (error) {
+        console.error('注册失败:', error)
+        ElMessage.error('注册失败')
+      }
+
+      registerVisible.value = false
+      // 重置表单
+      registerFormData.username = ''
+      registerFormData.password = ''
+      registerFormData.confirmPassword = ''
+      registerFormData.userType = ''
+      registerFormData.walletName = ''
+    } else {
+      ElMessage({
+        type: 'error',
+        message: '请正确填写注册信息'
+      })
+      return false
+    }
   })
 }
 

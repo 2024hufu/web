@@ -19,7 +19,7 @@
           class="inline-flex font-bold text-2xl ml-2"
           :class="(config.side_mode === 'head' || config.side_mode === 'combination') &&'min-w-fit'"
         >
-          {{ $GIN_VUE_ADMIN.appName }}
+          {{ title }}
         </div>
       </div>
 
@@ -108,6 +108,19 @@ import { setUserAuthority } from '@/api/user'
 import { fmtTitle } from "@/utils/fmtRouterTitle";
 import gvaAside from "@/view/layout/aside/index.vue"
 const userStore = useUserStore();
+
+const title = computed(() => {
+  if (userStore.userInfo.authorityId === 1) {
+    return '用户端'
+  }else if(userStore.userInfo.authorityId === 2){
+    return '监管端'
+  }else if(userStore.userInfo.authorityId === 3){
+    return '商家端'
+  }else {
+    return '管理端'
+  }
+})
+
 const router = useRouter()
 const route = useRoute()
 const appStore = useAppStore()
