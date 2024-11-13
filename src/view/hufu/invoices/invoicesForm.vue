@@ -9,12 +9,6 @@
         <el-form-item label="开票日期:" prop="issue_date">
           <el-input v-model="formData.issue_date" :clearable="true"  placeholder="请输入开票日期" />
        </el-form-item>
-        <el-form-item label="买方名称:" prop="buyer_name">
-          <el-input v-model="formData.buyer_name" :clearable="true"  placeholder="请输入买方名称" />
-       </el-form-item>
-        <el-form-item label="买方税号:" prop="buyer_tax_id">
-          <el-input v-model="formData.buyer_tax_id" :clearable="true"  placeholder="请输入买方税号" />
-       </el-form-item>
         <el-form-item label="卖方名称:" prop="seller_name">
           <el-input v-model="formData.seller_name" :clearable="true"  placeholder="请输入卖方名称" />
        </el-form-item>
@@ -85,8 +79,6 @@ const type = ref('')
 const formData = ref({
             invoice_id: '',
             issue_date: '',
-            buyer_name: '',
-            buyer_tax_id: '',
             seller_name: '',
             seller_tax_id: '',
             item_name: '',

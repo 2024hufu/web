@@ -17,7 +17,7 @@
       </el-icon>
     </el-tooltip>
 
-    <el-tooltip
+    <!-- <el-tooltip
       class=""
       effect="dark"
       content="系统设置"
@@ -26,7 +26,7 @@
       <el-icon class="w-8 h-8 shadow rounded-full border border-gray-200 dark:border-gray-600 cursor-pointer border-solid" @click="toggleSetting">
         <Setting />
       </el-icon>
-    </el-tooltip>
+    </el-tooltip> -->
 
     <el-tooltip
       class=""

@@ -21,12 +21,16 @@
           </el-form-item>
           
           <el-form-item label="证明材料" prop="evidence">
-            <el-input 
-              v-model="formData.evidence"
-              type="textarea"
-              :rows="4"
-              placeholder="请输入证明材料"
-            />
+            <el-upload
+              class="evidence-uploader"
+              action="#"
+              :auto-upload="false"
+              :on-change="handleFileChange"
+              :limit="1"
+              accept=".txt"
+            >
+              <el-button type="primary">选择文件</el-button>
+            </el-upload>
           </el-form-item>
   
           <el-form-item>
@@ -51,7 +55,19 @@
   
         <el-table :data="applications" style="width: 100%">
           <el-table-column prop="wallet_id" label="钱包ID" width="180" />
-          <el-table-column prop="evidence" label="证明材料" show-overflow-tooltip />
+          <el-table-column prop="evidence" label="证明材料" show-overflow-tooltip>
+            <template #default="{ row }">
+              <el-link 
+                type="primary" 
+                :underline="false"
+                v-if="row.evidence"
+                @click="downloadEvidence(row.evidence)"
+              >
+                <el-icon class="el-icon--left"><Document /></el-icon>
+                查看内容
+              </el-link>
+            </template>
+          </el-table-column>
           <el-table-column prop="status" label="状态" width="120">
             <template #default="{ row }">
               <el-tag :type="getStatusType(row.status)">
@@ -122,14 +138,14 @@
   
   <script setup>
   import { ref, reactive, onMounted } from 'vue'
-  import { ElMessage } from 'element-plus'
+  import { ElMessage, ElMessageBox } from 'element-plus'
   import axios from 'axios'
   import { Document } from '@element-plus/icons-vue'
   
   const formRef = ref(null)
   const formData = reactive({
     wallet_id: '',
-    evidence: ''
+    evidence: null
   })
   
   const rules = {
@@ -137,7 +153,7 @@
       { required: true, message: '请输入钱包ID', trigger: 'blur' }
     ],
     evidence: [
-      { required: true, message: '请输入证明材料', trigger: 'blur' }
+      { required: true, message: '请上传证明材料', trigger: 'change' }
     ]
   }
   
@@ -174,16 +190,42 @@
   
   const fetchApplications = async () => {
     try {
-      applications.value = [
-        {
-          wallet_id: 'wallet123',
-          evidence: '这是证明材料',
-          status: 'pending',
-          created_at: '2024-03-20 10:00:00'
-        },
-      ]
+      const response = await axios.post('http://45.8.113.140:3338/api/v1/regulator/application')
+      if (response.data.code === 0) {
+        applications.value = response.data.data.map(item => ({
+          wallet_id: item.wallet_id,
+          evidence: item.content,
+          status: getApplicationStatus(item.status),
+          created_at: formatTimestamp(item.timestamp)
+        }))
+      } else {
+        throw new Error(response.data.msg)
+      }
     } catch (error) {
-      ElMessage.error('获取申请记录失败')
+      console.error('Error fetching applications:', error)
+      ElMessage.error('获取申请记录失败：' + (error.response?.data?.msg || error.message))
+    }
+  }
+  
+  const getApplicationStatus = (status) => {
+    if (!status) return 'pending'
+    return 'approved'
+  }
+  
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '-'
+    try {
+      const year = timestamp.substring(0, 4)
+      const month = timestamp.substring(4, 6)
+      const day = timestamp.substring(6, 8)
+      const hour = timestamp.substring(8, 10)
+      const minute = timestamp.substring(10, 12)
+      const second = timestamp.substring(12, 14)
+      
+      return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+    } catch (error) {
+      console.error('Error parsing timestamp:', error)
+      return timestamp
     }
   }
   
@@ -192,6 +234,13 @@
     fetchApplications()
   }
   
+  const handleFileChange = (file) => {
+    if (file.raw.type !== 'text/plain') {
+      ElMessage.error('请上传txt格式的文件')
+      return false
+    }
+    formData.evidence = file.raw
+  }
   
   const handleSubmit = async () => {
     if (!formRef.value) return
@@ -201,12 +250,17 @@
     try {
       await formRef.value.validate()
       
-      const response = await axios.post('http://45.8.113.140:3338/api/v1/regulator/private-key', {
-        wallet_id: Number(formData.wallet_id),
-        evidence: formData.evidence
-      }, {
+      const formDataToSend = new FormData()
+      formDataToSend.append('wallet_id', formData.wallet_id.toString())
+      if (formData.evidence && formData.evidence instanceof File) {
+        formDataToSend.append('evidence', formData.evidence)
+      } else {
+        throw new Error('请选择有���证明文件')
+      }
+
+      const response = await axios.post('http://45.8.113.140:3338/api/v1/regulator/private-key', formDataToSend, {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'multipart/form-data'
         }
       })
   
@@ -221,10 +275,22 @@
         ElMessage.error('申请失败：' + response.data.message)
       }
     } catch (error) {
-      ElMessage.error('申请失败：' + (error.response?.data?.message || error.message))
+      console.error('Error:', error)
+      ElMessage.error('申请失败：' + (error.response?.data?.error || error.message))
     } finally {
       loading.value = false
     }
+  }
+  
+  const downloadEvidence = (content) => {
+    // 下载文件
+    const blob = new Blob([content], { type: 'text/plain' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = '证明材料.txt'
+    link.click()
+    window.URL.revokeObjectURL(url)
   }
   
   onMounted(() => {
@@ -341,6 +407,41 @@
     font-size: 14px;
     line-height: 1.5;
     background-color: #f8f9fa;
+  }
+  
+  .evidence-uploader {
+    width: 100%;
+  }
+  
+  .el-upload__tip {
+    color: #909399;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  
+  :deep(.evidence-dialog) {
+    width: 80% !important;
+    
+    .el-message-box__content {
+      white-space: pre-wrap;
+      font-family: monospace;
+      max-height: 600px;
+      overflow-y: auto;
+      padding: 20px;
+      font-size: 14px;
+      line-height: 1.6;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+
+    .el-message-box__container {
+      padding: 20px;
+    }
+
+    .el-message-box__header {
+      padding: 20px;
+    }
   }
   </style>
   

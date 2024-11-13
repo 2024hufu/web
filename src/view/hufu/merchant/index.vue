@@ -60,20 +60,6 @@
           </el-col>
         </el-row>
 
-        <el-divider content-position="left">购买方信息</el-divider>
-
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="购买方名称" prop="buyer_name">
-              <el-input v-model="invoiceForm.buyer_name" placeholder="请输入购买方名称" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="购买方税号" prop="buyer_tax_id">
-              <el-input v-model="invoiceForm.buyer_tax_id" placeholder="请输入购买方税号" />
-            </el-form-item>
-          </el-col>
-        </el-row>
 
         <el-divider content-position="left">销售方信息</el-divider>
 
@@ -89,6 +75,22 @@
             </el-form-item>
           </el-col>
         </el-row>
+
+        <el-divider content-position="left">购买方信息</el-divider>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="购买方名称" prop="buyer_name">
+              <el-input v-model="invoiceForm.buyer_name" placeholder="请输入购买方名称" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="购买方税号" prop="buyer_tax_id">
+              <el-input v-model="invoiceForm.buyer_tax_id" placeholder="请输入购买方税号" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
 
         <el-divider content-position="left">商品信息</el-divider>
 
@@ -118,12 +120,12 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="税额" prop="tax_amount">
-              <el-input-number v-model="invoiceForm.tax_amount" :precision="2" disabled />
+              <el-input-number v-model="invoiceForm.tax_amount" :precision="2"  />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="合计金额" prop="total_amount">
-              <el-input-number v-model="invoiceForm.total_amount" :precision="2" disabled />
+              <el-input-number v-model="invoiceForm.total_amount" :precision="2"  />
             </el-form-item>
           </el-col>
         </el-row>
@@ -211,7 +213,11 @@ export default {
         invoice_purpose: '',
         email: '',
         transactionId: '',
-        customerId: ''
+        customerId: '',
+        buyer_address: '',
+        buyer_phone: '',
+        buyer_bank: '',
+        buyer_bank_account: ''
       },
       invoiceRules: {
         type: [{ required: true, message: '请选择发票类型', trigger: 'change' }],
@@ -222,7 +228,13 @@ export default {
         email: [
           { required: true, message: '请输入邮箱地址', trigger: 'blur' },
           { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
-        ]
+        ],
+        buyer_name: [{ required: true, message: '请输入购买方名称', trigger: 'blur' }],
+        buyer_tax_id: [{ required: true, message: '请输入购买方税号', trigger: 'blur' }],
+        buyer_address: [{ required: true, message: '请输入购买方地址', trigger: 'blur' }],
+        buyer_phone: [{ required: true, message: '请输入购买方电话', trigger: 'blur' }],
+        buyer_bank: [{ required: true, message: '请输入开户银行', trigger: 'blur' }],
+        buyer_bank_account: [{ required: true, message: '请输入银行账号', trigger: 'blur' }]
       }
     };
   },
@@ -263,14 +275,12 @@ export default {
       try {
         const response = await axios.post('http://45.8.113.140:3338/api/v1/hufu/tx/received', {
           wallet_id: walletInfo.value.ID,
-          page: this.page,
-          page_size: this.pageSize
         });
         if (response.data.code === 0) {
-          this.recentTransfers = response.data.data.list.map(item => ({
-            id: item.id,
+          this.recentTransfers = response.data.data.map(item => ({
+            id: item.ID,
             date: new Date(item.CreatedAt).toLocaleDateString(),
-            customer: "混币代理",
+            customer: item.from_wallet_id < 10 ? "混币代理" : `客户${item.from_wallet_id}`,
             amount: `¥${item.amount}`,
             status: this.getStatusText(item.status)
           }));
@@ -296,7 +306,7 @@ export default {
         taxNumber: '',
         amount: parseFloat(row.amount.replace('¥', '')),
         content: `交易号：${row.id}的收款`,
-        email: '',
+        email: row.customer === "混币代理" ? "proxy@hufu.com" : "",
         transactionId: row.id,
         customerId: row.customer
       }
@@ -306,7 +316,7 @@ export default {
         if (valid) {
           try {
             // 这里调用后端开票接口
-            // await axios.post('your-api-endpoint', this.invoiceForm)
+            await axios.post('http://45.8.113.140:3338/api/v1/hufu/invoice/create', this.invoiceForm)
             this.$message.success('开票申请提交成功')
             this.invoiceDialogVisible = false
           } catch (error) {

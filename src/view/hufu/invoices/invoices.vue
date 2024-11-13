@@ -52,8 +52,6 @@
         
           <el-table-column align="left" label="发票号码" prop="invoice_id" width="120" />
           <el-table-column align="left" label="开票日期" prop="issue_date" width="120" />
-          <el-table-column align="left" label="买方名称" prop="buyer_name" width="120" />
-          <el-table-column align="left" label="买方税号" prop="buyer_tax_id" width="120" />
           <el-table-column align="left" label="卖方名称" prop="seller_name" width="120" />
           <el-table-column align="left" label="卖方税号" prop="seller_tax_id" width="120" />
           <el-table-column align="left" label="项目名称" prop="item_name" width="120" />
@@ -98,17 +96,11 @@
             </template>
 
           <el-form :model="formData" label-position="top" ref="elFormRef" :rules="rule" label-width="80px">
-            <el-form-item label="发票号码:"  prop="invoice_id" >
+            <!-- <el-form-item label="发票号码:"  prop="invoice_id" >
               <el-input v-model="formData.invoice_id" :clearable="true"  placeholder="请输入发票号码" />
-            </el-form-item>
+            </el-form-item> -->
             <el-form-item label="开票日期:"  prop="issue_date" >
               <el-input v-model="formData.issue_date" :clearable="true"  placeholder="请输入开票日期" />
-            </el-form-item>
-            <el-form-item label="买方名称:"  prop="buyer_name" >
-              <el-input v-model="formData.buyer_name" :clearable="true"  placeholder="请输入买方名称" />
-            </el-form-item>
-            <el-form-item label="买方税号:"  prop="buyer_tax_id" >
-              <el-input v-model="formData.buyer_tax_id" :clearable="true"  placeholder="请输入买方税号" />
             </el-form-item>
             <el-form-item label="卖方名称:"  prop="seller_name" >
               <el-input v-model="formData.seller_name" :clearable="true"  placeholder="请输入卖方名称" />
@@ -156,12 +148,6 @@
                     </el-descriptions-item>
                     <el-descriptions-item label="开票日期">
                         {{ detailFrom.issue_date }}
-                    </el-descriptions-item>
-                    <el-descriptions-item label="买方名称">
-                        {{ detailFrom.buyer_name }}
-                    </el-descriptions-item>
-                    <el-descriptions-item label="买方税号">
-                        {{ detailFrom.buyer_tax_id }}
                     </el-descriptions-item>
                     <el-descriptions-item label="卖方名称">
                         {{ detailFrom.seller_name }}
@@ -234,8 +220,6 @@ const showAllQuery = ref(false)
 const formData = ref({
             invoice_id: '',
             issue_date: '',
-            buyer_name: '',
-            buyer_tax_id: '',
             seller_name: '',
             seller_tax_id: '',
             item_name: '',
@@ -428,8 +412,6 @@ const closeDialog = () => {
     formData.value = {
         invoice_id: '',
         issue_date: '',
-        buyer_name: '',
-        buyer_tax_id: '',
         seller_name: '',
         seller_tax_id: '',
         item_name: '',

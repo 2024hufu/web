@@ -1,4 +1,3 @@
-
 <template>
   <div>
     <div class="gva-search-box">
@@ -52,11 +51,23 @@
         
           <el-table-column align="left" label="钱包序号" prop="wallet_id" width="120" />
           <el-table-column align="left" label="交易序号" prop="transaction_id" width="120" />
-        <el-table-column align="left" label="操作" fixed="right" min-width="240">
+          <el-table-column align="left" label="异常证据" prop="evidence" min-width="200">
             <template #default="scope">
-            <el-button  type="primary" link class="table-button" @click="getDetails(scope.row)"><el-icon style="margin-right: 5px"><InfoFilled /></el-icon>查看详情</el-button>
-            <el-button  type="primary" link icon="edit" class="table-button" @click="updateAbnormalTransactionsFunc(scope.row)">变更</el-button>
-            <el-button  type="primary" link icon="delete" @click="deleteRow(scope.row)">删除</el-button>
+              {{ formatEvidence(scope.row.evidence) }}
+            </template>
+          </el-table-column>
+          <el-table-column align="left" label="监管签名" prop="signature" min-width="200" />
+        <el-table-column align="left" label="操作" fixed="right" min-width="300">
+            <template #default="scope">
+                <el-button type="primary" link class="table-button" @click="getDetails(scope.row)">
+                    <el-icon style="margin-right: 5px"><InfoFilled /></el-icon>查看详情
+                </el-button>
+                <el-button type="primary" link icon="delete" @click="deleteRow(scope.row)">
+                    删除
+                </el-button>
+                <el-button type="primary" link @click="downloadRecord(scope.row)">
+                    <el-icon style="margin-right: 5px"><Download /></el-icon>下载
+                </el-button>
             </template>
         </el-table-column>
         </el-table>
@@ -90,6 +101,18 @@
             <el-form-item label="交易序号:"  prop="transaction_id" >
               <el-input v-model.number="formData.transaction_id" :clearable="true" placeholder="请输入交易序号" />
             </el-form-item>
+            <el-form-item label="异常证据:"  prop="evidence" >
+              <el-input v-model="formData.evidence" :clearable="true"  placeholder="请输入异常证据" />
+            </el-form-item>
+            <el-form-item label="监管签名:" prop="signature">
+              <el-input
+                v-model="formData.signature"
+                :clearable="true"
+                type="textarea"
+                :rows="3"
+                placeholder="请输入监管签名"
+              />
+            </el-form-item>
           </el-form>
     </el-drawer>
 
@@ -100,6 +123,14 @@
                     </el-descriptions-item>
                     <el-descriptions-item label="交易序号">
                         {{ detailFrom.transaction_id }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="异常证据">
+                        {{ formatEvidence(detailFrom.evidence) }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="监管签名">
+                        <div style="word-break: break-all;">
+                          {{ detailFrom.signature }}
+                        </div>
                     </el-descriptions-item>
             </el-descriptions>
         </el-drawer>
@@ -121,6 +152,7 @@ import {
 import { getDictFunc, formatDate, formatBoolean, filterDict ,filterDataSource, returnArrImg, onDownloadFile } from '@/utils/format'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref, reactive } from 'vue'
+import { Download } from '@element-plus/icons-vue'  // 添加图标引入
 
 
 
@@ -136,6 +168,8 @@ const showAllQuery = ref(false)
 const formData = ref({
             wallet_id: undefined,
             transaction_id: undefined,
+            evidence: '',
+            signature: '',
         })
 
 
@@ -316,6 +350,8 @@ const closeDialog = () => {
     formData.value = {
         wallet_id: undefined,
         transaction_id: undefined,
+        evidence: '',
+        signature: '',
         }
 }
 // 弹窗确定
@@ -375,6 +411,30 @@ const closeDetailShow = () => {
   detailFrom.value = {}
 }
 
+const formatEvidence = (evidence) => {
+  const match = evidence.match(/Error:\s(.+)/)
+  return match ? match[1] : evidence
+}
+
+// 添加下载函数
+const downloadRecord = (row) => {
+  const content = `异常交易记录
+------------------------
+创建时间: ${formatDate(row.CreatedAt)}
+钱包序号: ${row.wallet_id}
+交易序号: ${row.transaction_id}
+异常证据: ${row.evidence}
+监管签名: ${row.signature}
+------------------------`
+
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+  const url = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `异常交易记录_${row.ID}.txt`
+  link.click()
+  window.URL.revokeObjectURL(url)
+}
 
 </script>
 

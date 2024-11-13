@@ -9,6 +9,12 @@
         <el-form-item label="交易序号:" prop="transaction_id">
           <el-input v-model.number="formData.transaction_id" :clearable="true" placeholder="请输入" />
        </el-form-item>
+        <el-form-item label="异常证据:" prop="evidence">
+          <el-input v-model="formData.evidence" :clearable="true"  placeholder="请输入异常证据" />
+       </el-form-item>
+        <el-form-item label="监管签名:" prop="signature">
+          <el-input v-model="formData.signature" :clearable="true"  placeholder="请输入监管签名" />
+       </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="save">保存</el-button>
           <el-button type="primary" @click="back">返回</el-button>
@@ -43,6 +49,8 @@ const type = ref('')
 const formData = ref({
             wallet_id: undefined,
             transaction_id: undefined,
+            evidence: '',
+            signature: '',
         })
 // 验证规则
 const rule = reactive({
