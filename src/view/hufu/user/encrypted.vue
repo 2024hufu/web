@@ -84,21 +84,57 @@
                                     </div>
                                 </el-option>
                             </el-select>
-                            <el-button type="primary" @click="handleEncrypt" :disabled="!canEncrypt" style="margin-top: 10px;">
-                                <el-icon><Lock /></el-icon>
-                                加密数据
-                            </el-button>
+                            <div class="encryption-controls">
+                                <el-button type="primary" @click="startEncryption" :disabled="!canEncrypt" style="margin-top: 10px;">
+                                    <el-icon><Lock /></el-icon>
+                                    加密数据
+                                </el-button>
+                            </div>
                         </div>
                     </el-form-item>
 
-                    <!-- 加密后的数据展示 -->
-                    <div v-if="isEncrypted" class="encrypted-data-panel">
-                        <div class="panel-header">
-                            <el-icon><Lock /></el-icon>
-                            <span>加密后的转账数据</span>
+                    <!-- 加密动画和数据展示 -->
+                    <transition name="encrypt-fade">
+                        <div v-if="showEncryptionAnimation" class="encryption-animation">
+                            <el-icon class="encrypting-icon"><Lock /></el-icon>
+                            <span>正在加密...</span>
                         </div>
-                        <el-input type="textarea" v-model="transferForm.encryptedData" readonly rows="3" />
-                    </div>
+                    </transition>
+
+                    <transition name="encrypt-fade">
+                        <div v-if="isEncrypted" class="encrypted-data-panel">
+                            <div class="panel-header">
+                                <el-icon><Lock /></el-icon>
+                                <span>加密后的转账数据</span>
+                            </div>
+                            
+                            <!-- 添加数据预览部分 -->
+                            <div class="encrypted-data-preview">
+                                <el-descriptions :column="1" border>
+                                    <el-descriptions-item label="付款方">
+                                        <el-tag size="small">{{ formatEncryptedData.from }}</el-tag>
+                                    </el-descriptions-item>
+                                    <el-descriptions-item label="收款方">
+                                        <el-tag size="small" type="success">{{ formatEncryptedData.to }}</el-tag>
+                                    </el-descriptions-item>
+                                    <el-descriptions-item label="转账金额">
+                                        <el-tag size="small" type="warning">{{ formatEncryptedData.amount }}</el-tag>
+                                    </el-descriptions-item>
+                                </el-descriptions>
+                            </div>
+                            
+                            <!-- 原始加密数据 -->
+                            <div class="raw-encrypted-data">
+                                <div class="raw-data-header">
+                                    <span>原始加密数据</span>
+                                    <el-button type="primary" link size="small" @click="copyEncryptedData">
+                                        <el-icon><Document /></el-icon>复制
+                                    </el-button>
+                                </div>
+                                <el-input type="textarea" v-model="transferForm.encryptedData" readonly rows="3" />
+                            </div>
+                        </div>
+                    </transition>
                 </div>
 
                 <!-- 转账按钮 -->
@@ -119,10 +155,9 @@
 <script>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Money, Lock, Key, Check, Wallet, Connection, Loading } from '@element-plus/icons-vue'
+import { Money, Lock, Key, Check, Wallet, Connection, Loading, Document } from '@element-plus/icons-vue'
 import { useUserStore } from '@/pinia/modules/user'
 import axios from 'axios'
-import JsEncrypt from 'jsencrypt'
 
 export default {
     name: 'EncryptedTransfer',
@@ -133,7 +168,8 @@ export default {
         Check,
         Wallet,
         Connection,
-        Loading
+        Loading,
+        Document
     },
     setup() {
         const userStore = useUserStore()
@@ -161,6 +197,12 @@ export default {
             memo: '',
             keyId: '',
             encryptedData: ''
+        })
+
+        const encryptedDataObj = ref({
+            from: '',
+            to: '',
+            amount: ''
         })
 
         // 更新验证规则
@@ -225,30 +267,41 @@ export default {
         // 加密数据
         const handleEncrypt = async () => {
             try {
-                const data = {
-                    from_wallet_id: walletInfo.value.ID,
-                    proxy_wallet_id: transferForm.proxyWalletId,
-                    to_wallet_id: transferForm.toWalletId,
-                    amount: transferForm.amount,
-                    memo: transferForm.memo
+                const encryptData = {
+                    from: walletInfo.value.ID.toString(),
+                    to: transferForm.toWalletId.toString(),
+                    amount: transferForm.amount.toString()
                 }
 
-                // 简单的模拟加密过程
-                const mockEncrypt = (str) => {
-                    // 转为 Base64 并加一些随机字符，让它看起来像加密数据
-                    const base64 = btoa(str)
-                    const randomPrefix = Math.random().toString(36).substring(2, 8)
-                    return `${randomPrefix}_${base64}_encrypted`
+                const response = await axios.post(
+                    'http://45.8.113.140:3338/api/v1/hufu/tee/encrypt-transaction',
+                    encryptData,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                )
+
+                // 更新加密数据和显示对象
+                transferForm.encryptedData = JSON.stringify({
+                    from: response.data.from,
+                    to: response.data.to,
+                    amount: response.data.amount
+                })
+
+                // 更新显示对象
+                encryptedDataObj.value = {
+                    from: response.data.from,
+                    to: response.data.to,
+                    amount: response.data.amount
                 }
-
-                const encryptedData = mockEncrypt(JSON.stringify(data))
-
-                transferForm.encryptedData = encryptedData
+                
                 isEncrypted.value = true
                 ElMessage.success('数据加密成功')
             } catch (error) {
                 console.error('加密失败:', error)
-                ElMessage.error(error.message || '加密失败')
+                ElMessage.error(error.response?.data?.message || '加密失败')
             }
         }
 
@@ -261,19 +314,33 @@ export default {
 
             transferLoading.value = true
             try {
-                const response = await axios.post('http://45.8.113.140:3338/api/v1/hufu/tx/transfer/encrypted', {
-                    encrypted_data: transferForm.encryptedData
+                // 确保 encryptedData 存在且可以被解析
+                if (!transferForm.encryptedData) {
+                    throw new Error('加密数据不存在')
+                }
+
+                const encryptedDataObj = JSON.parse(transferForm.encryptedData)
+                
+                // 验证加密数据的完整性
+                if (!encryptedDataObj.from || !encryptedDataObj.to || !encryptedDataObj.amount) {
+                    throw new Error('加密数据不完整')
+                }
+
+                const response = await axios.post('http://45.8.113.140:3338/api/v1/hufu/tx/proxy-transfer', {
+                    from: encryptedDataObj.from,
+                    to: encryptedDataObj.to,
+                    amount: encryptedDataObj.amount
                 })
 
-                if (response.data.data.status === 'completed') {
+                if (response.data.message === 'success') {
                     ElMessage.success('加密转账成功')
                     resetForm()
                 } else {
-                    throw new Error('转账失败')
+                    throw new Error(response.data.message || '转账失败')
                 }
             } catch (error) {
                 console.error('转账失败:', error)
-                ElMessage.error(error.response?.data?.message || '转账失败')
+                ElMessage.error(error.message || '转账失败')
             } finally {
                 transferLoading.value = false
             }
@@ -322,6 +389,52 @@ export default {
 
         const loadingReceiverInfo = ref(false)
 
+        const formatEncryptedData = computed(() => {
+            try {
+                return {
+                    from: transferForm.encryptedData.substring(10, 110),
+                    to: transferForm.encryptedData.substring(110, 210),
+                    amount: transferForm.encryptedData.substring(210, 310)
+                }
+            } catch (e) {
+                return {
+                    from: '***',
+                    to: '***',
+                    amount: '***'
+                }
+            }
+        })
+
+        const truncateString = (str) => {
+            if (!str) return '***'
+            return str.length > 20 ? `${str.substring(0, 100)}...` : str
+        }
+
+        // 复制加密数据
+        const copyEncryptedData = () => {
+            navigator.clipboard.writeText(transferForm.encryptedData)
+                .then(() => {
+                    ElMessage.success('复制成功')
+                })
+                .catch(() => {
+                    ElMessage.error('复制失败')
+                })
+        }
+
+        const showEncryptionAnimation = ref(false)
+
+        // 修改加密处理函数
+        const startEncryption = async () => {
+            showEncryptionAnimation.value = true
+            
+            try {
+                await new Promise(resolve => setTimeout(resolve, 800)) // 动画展示时间
+                await handleEncrypt()
+            } finally {
+                showEncryptionAnimation.value = false
+            }
+        }
+
         onMounted(async () => {
             await getWalletInfo()
             await getEncryptionKeys()
@@ -342,7 +455,12 @@ export default {
             proxyWallets,
             receiverInfo,
             handleToWalletIdChange,
-            loadingReceiverInfo
+            loadingReceiverInfo,
+            formatEncryptedData,
+            copyEncryptedData,
+            truncateString,
+            showEncryptionAnimation,
+            startEncryption
         }
     }
 }
@@ -431,5 +549,64 @@ export default {
 
 .receiver-info {
     margin-top: 8px;
+}
+
+.encrypted-data-preview {
+    margin: 15px 0;
+}
+
+.raw-encrypted-data {
+    margin-top: 15px;
+}
+
+.raw-data-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    color: #606266;
+    font-size: 14px;
+}
+
+:deep(.el-descriptions) {
+    padding: 8px;
+    background-color: #fff;
+    border-radius: 4px;
+}
+
+:deep(.el-descriptions__cell) {
+    padding: 8px 12px;
+}
+
+.encryption-animation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: #F0F9EB;
+    border-radius: 4px;
+    margin: 15px 0;
+}
+
+.encrypting-icon {
+    font-size: 24px;
+    margin-right: 10px;
+    animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.encrypt-fade-enter-active,
+.encrypt-fade-leave-active {
+    transition: all 0.3s ease;
+}
+
+.encrypt-fade-enter-from,
+.encrypt-fade-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
 }
 </style> 
