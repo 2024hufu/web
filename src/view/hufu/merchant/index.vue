@@ -2,35 +2,100 @@
   <div class="dashboard-container">
     <!-- 收入概览卡片 -->
     <div class="overview-cards">
-      <el-row :gutter="20">
+      <el-row :gutter="24">
         <el-col :span="6" v-for="(income, index) in incomeStats" :key="index">
-          <el-card shadow="hover">
-            <div class="card-content">
-              <div class="card-title">{{ income.title }}</div>
-              <div class="card-amount">¥{{ income.amount }}</div>
+          <el-card class="material-stat-card" shadow="never">
+            <div class="stat-card-content">
+              <div class="stat-icon-wrapper" :class="`icon-bg-${index}`">
+                <el-icon :size="24">
+                  <component :is="income.icon" />
+                </el-icon>
+              </div>
+              <div class="stat-info">
+                <div class="stat-title">{{ income.title }}</div>
+                <div class="stat-amount">¥{{ income.amount }}</div>
+              </div>
             </div>
           </el-card>
         </el-col>
       </el-row>
     </div>
 
-    <DashboardChart />
+    <!-- <DashboardChart /> -->
 
     <!-- 最近转账 -->
-    <el-row :gutter="20" class="dashboard-content">
+    <el-row :gutter="24" class="dashboard-content">
       <el-col :span="24">
-        <el-card class="recent-transfers" shadow="hover">
-          <div slot="header" class="transfer-header">
-            <span>最近转账记录</span>
-          </div>
-          <el-table :data="recentTransfers" style="width: 100%">
-            <el-table-column prop="date" label="日期" width="180" />
-            <el-table-column prop="customer" label="客户名称" width="180" />
-            <el-table-column prop="amount" label="金额" />
-            <el-table-column prop="status" label="状态" />
+        <el-card class="recent-transfers material-card">
+          <template #header>
+            <div class="transfer-header">
+              <span class="header-title">
+                <el-icon><Document /></el-icon>
+                最近转账记录
+              </span>
+              <el-button 
+                class="material-button"
+                type="primary" 
+                text
+              >
+                查看更多
+              </el-button>
+            </div>
+          </template>
+          
+          <el-table 
+            :data="recentTransfers" 
+            style="width: 100%"
+            :header-cell-style="{
+              background: 'transparent',
+              color: '#666',
+              fontWeight: 500,
+              fontSize: '14px'
+            }"
+            :cell-style="{
+              padding: '16px 8px'
+            }"
+          >
+            <el-table-column prop="date" label="日期" width="180">
+              <template #default="{ row }">
+                <span class="material-text">{{ row.date }}</span>
+              </template>
+            </el-table-column>
+            
+            <el-table-column prop="customer" label="客户名称" width="180">
+              <template #default="{ row }">
+                <div class="material-chip"
+                  :class="row.customer === '混币代理' ? 'chip-primary' : 'chip-default'"
+                >
+                  {{ row.customer }}
+                </div>
+              </template>
+            </el-table-column>
+            
+            <el-table-column prop="amount" label="金额">
+              <template #default="{ row }">
+                <span class="material-amount">{{ row.amount }}</span>
+              </template>
+            </el-table-column>
+            
+            <el-table-column prop="status" label="状态">
+              <template #default="{ row }">
+                <div class="material-status-chip"
+                  :class="getStatusClass(row.status)"
+                >
+                  {{ row.status }}
+                </div>
+              </template>
+            </el-table-column>
+            
             <el-table-column label="操作" width="180">
               <template #default="scope">
-                <el-button type="primary" size="small" @click="handleCreateInvoice(scope.row)">
+                <el-button
+                  class="material-button"
+                  @click="handleCreateInvoice(scope.row)"
+                  plain
+                >
+                  <el-icon class="material-icon"><Ticket /></el-icon>
                   开具发票
                 </el-button>
               </template>
@@ -241,10 +306,30 @@ export default {
   computed: {
     incomeStats() {
       return [
-        { title: '总收入', amount: this.totalIncome },
-        { title: '今日收入', amount: this.dailyIncome },
-        { title: '本周收入', amount: this.weeklyIncome },
-        { title: '本月收入', amount: this.monthlyIncome }
+        { 
+          title: '总收入', 
+          amount: this.totalIncome, 
+          icon: 'Money',
+          trend: '+12%'
+        },
+        { 
+          title: '今日收入', 
+          amount: this.dailyIncome, 
+          icon: 'Sunny',
+          trend: '+5%'
+        },
+        { 
+          title: '本周收入', 
+          amount: this.weeklyIncome, 
+          icon: 'Calendar',
+          trend: '+8%'
+        },
+        { 
+          title: '本月收入', 
+          amount: this.monthlyIncome, 
+          icon: 'TrendCharts',
+          trend: '+15%'
+        }
       ];
     }
   },
@@ -331,6 +416,14 @@ export default {
       this.invoiceForm.amount = amount;
       this.invoiceForm.tax_amount = taxAmount;
       this.invoiceForm.total_amount = amount + taxAmount;
+    },
+    getStatusClass(status) {
+      const statusMap = {
+        '处理中': 'status-processing',
+        '已完成': 'status-completed',
+        '已失败': 'status-failed'
+      };
+      return statusMap[status] || 'status-default';
     }
   }
 };
@@ -342,23 +435,77 @@ export default {
 }
 
 .overview-cards {
-  margin-bottom: 20px;
+  margin-bottom: 32px;
 }
 
-.card-content {
-  text-align: center;
+.material-stat-card {
+  background: white;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  height: 120px;
+  display: flex;
+  align-items: center;
 }
 
-.card-title {
+.material-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card-content {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  width: 100%;
+}
+
+.stat-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  color: white;
+}
+
+.icon-bg-0 {
+  background: linear-gradient(135deg, #1976d2, #64b5f6);
+}
+
+.icon-bg-1 {
+  background: linear-gradient(135deg, #2e7d32, #81c784);
+}
+
+.icon-bg-2 {
+  background: linear-gradient(135deg, #f57c00, #ffb74d);
+}
+
+.icon-bg-3 {
+  background: linear-gradient(135deg, #7b1fa2, #ba68c8);
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-title {
   font-size: 14px;
-  color: #666;
-  margin-bottom: 10px;
+  color: rgba(0, 0, 0, 0.6);
+  margin-bottom: 8px;
+  font-weight: 500;
 }
 
-.card-amount {
+.stat-amount {
   font-size: 24px;
-  font-weight: bold;
-  color: #409EFF;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.87);
+  font-family: 'Roboto', sans-serif;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
 .dashboard-content {
@@ -366,35 +513,210 @@ export default {
 }
 
 .recent-transfers {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  border-radius: 8px;
 }
 
 .transfer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+}
+
+.header-title {
   font-size: 16px;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #303133;
 }
 
-.el-table th,
-.el-table td {
-  text-align: center;
+.date-cell {
+  color: #606266;
 }
 
-.el-table th {
-  background-color: #f5f7fa;
-  color: #333;
+.amount-cell {
+  font-family: "DIN Alternate", "Arial", sans-serif;
+  font-weight: 600;
+  color: #67c23a;
 }
 
-.el-table td {
-  color: #666;
-}
-
-.el-card {
+:deep(.el-table) {
   border-radius: 8px;
   overflow: hidden;
 }
 
-.el-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+:deep(.el-table__row) {
+  transition: all 0.3s ease;
+}
+
+:deep(.el-table__row:hover) {
+  background-color: #f5f7fa !important;
+  transform: translateX(5px);
+}
+
+:deep(.el-table th) {
+  font-weight: 600;
+  color: #606266;
+  background: #f5f7fa;
+}
+
+:deep(.el-button) {
+  transition: all 0.3s;
+}
+
+:deep(.el-button:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+}
+
+/* Material Design 样式 */
+.material-card {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05), 
+              0 3px 6px rgba(0,0,0,0.08);
+  border: none;
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.material-card:hover {
+  box-shadow: 0 8px 16px rgba(0,0,0,0.12), 
+              0 4px 8px rgba(0,0,0,0.06);
+}
+
+.transfer-header {
+  padding: 16px;
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: 500;
+  color: rgba(0,0,0,0.87);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.material-text {
+  color: rgba(0,0,0,0.87);
+  font-size: 14px;
+}
+
+.material-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chip-primary {
+  background: rgba(25, 118, 210, 0.08);
+  color: #1976d2;
+}
+
+.chip-default {
+  background: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.material-amount {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 15px;
+  font-weight: 500;
+  color: #2e7d32;
+}
+
+.material-status-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-processing {
+  background: rgba(255, 152, 0, 0.08);
+  color: #f57c00;
+}
+
+.status-completed {
+  background: rgba(76, 175, 80, 0.08);
+  color: #43a047;
+}
+
+.status-failed {
+  background: rgba(244, 67, 54, 0.08);
+  color: #e53935;
+}
+
+.material-button {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.material-button:hover {
+  background: rgba(25, 118, 210, 0.04);
+}
+
+.material-button:active {
+  background: rgba(25, 118, 210, 0.12);
+}
+
+.material-icon {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+:deep(.el-table) {
+  border: none;
+}
+
+:deep(.el-table__row) {
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:deep(.el-table__row:hover) {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+:deep(.el-table th) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  background: transparent;
+}
+
+:deep(.el-table td) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* 暗色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .material-stat-card {
+    background: #1e1e1e;
+  }
+
+  .stat-title {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .stat-amount {
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+:deep(.el-card__header) {
+  border-bottom: 1px solid rgba(0,0,0,0.12);
+  padding: 0;
 }
 </style>

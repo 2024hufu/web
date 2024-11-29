@@ -329,138 +329,163 @@ export default {
 
 <style scoped>
 .wallet-container {
-    padding: 20px;
+    padding: 24px;
+    background-color: #f5f7fa;
+    min-height: calc(100vh - 84px);
 }
 
+/* 卡片样式优化 */
+.wallet-card,
+.balance-card,
+.stats-card {
+    height: 100%;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.wallet-card:hover,
+.balance-card:hover,
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* 卡片头部样式 */
 .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 16px 20px;
 }
 
+.card-header span {
+    font-size: 16px;
+    font-weight: 600;
+    color: #303133;
+}
+
+/* 钱包信息样式 */
 .wallet-info {
-    padding: 10px;
+    padding: 20px;
 }
 
 .info-item {
-    margin-bottom: 15px;
+    margin-bottom: 16px;
     display: flex;
     align-items: center;
+    line-height: 1.6;
 }
 
 .info-item .label {
     width: 100px;
-    color: #666;
+    color: #909399;
+    font-size: 14px;
 }
 
 .info-item .value {
     flex: 1;
-    color: #333;
+    color: #303133;
+    font-weight: 500;
 }
 
+/* 余额卡片样式 */
 .balance-info {
     text-align: center;
-    padding: 20px;
+    padding: 30px 20px;
 }
 
 .balance-amount {
-    font-size: 32px;
+    font-size: 36px;
     font-weight: bold;
     color: #409EFF;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+    text-shadow: 0 2px 4px rgba(64, 158, 255, 0.1);
 }
 
 .balance-actions {
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 16px;
 }
 
+.balance-actions .el-button {
+    padding: 12px 24px;
+    font-weight: 500;
+}
+
+/* 统计卡片样式 */
 .stats-info {
     display: flex;
     justify-content: space-around;
-    padding: 20px;
+    padding: 30px 20px;
 }
 
 .stats-item {
     text-align: center;
+    padding: 0 20px;
 }
 
 .stats-label {
-    color: #666;
-    margin-bottom: 10px;
+    color: #909399;
+    margin-bottom: 12px;
+    font-size: 14px;
 }
 
 .stats-value {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: bold;
-    color: #409EFF;
+    background: linear-gradient(45deg, #409EFF, #36D1DC);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-.el-card {
-    margin-bottom: 20px;
+/* 弹窗样式优化 */
+:deep(.el-dialog) {
+    border-radius: 16px;
+    overflow: hidden;
 }
 
-.wallet-card,
-.balance-card,
-.stats-card {
-    height: 100%;
+:deep(.el-dialog__header) {
+    margin: 0;
+    padding: 20px 24px;
+    background-color: #f5f7fa;
+    border-bottom: 1px solid #ebeef5;
 }
 
-.transfer-content {
-    position: relative;
-    padding: 20px;
-    border-radius: 4px;
-    transition: all 0.3s;
+:deep(.el-dialog__body) {
+    padding: 24px;
 }
 
-.transfer-content.is-encrypted {
-    background: #F0F9EB;
-    border: 1px solid #E1F3D8;
-}
-
-.status-icon {
-    font-size: 24px;
-    color: #909399;
-}
-
-.status-icon .is-active {
-    color: #67C23A;
-}
-
-.status-info {
-    flex: 1;
-}
-
-.status-title {
-    font-weight: bold;
-    margin-bottom: 4px;
-}
-
-.status-desc {
-    font-size: 12px;
-    color: #909399;
+:deep(.el-dialog__footer) {
+    padding: 16px 24px;
+    border-top: 1px solid #ebeef5;
 }
 
 .dialog-footer {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
-    margin-top: 20px;
 }
 
-.dialog-footer .el-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    margin-left: 0;
+/* 响应式布局优化 */
+@media screen and (max-width: 768px) {
+    .el-row {
+        margin: 0 !important;
+    }
+    
+    .el-col {
+        padding: 0 !important;
+        margin-bottom: 16px;
+    }
 }
 
-:deep(.el-dialog__body) {
-    padding: 20px 24px;
+/* 覆盖 Element Plus 默认的卡片头部样式 */
+:deep(.el-card__header) {
+    padding: 0;
+    border-bottom: 1px solid #ebeef5;
 }
 
-:deep(.el-dialog__footer) {
-    padding: 0 24px 20px;
+:deep(.el-card__body) {
+    padding: 0;
 }
 </style>
