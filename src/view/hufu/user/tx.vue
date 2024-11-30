@@ -2,7 +2,7 @@
     <div class="page-container">
         <el-card class="transaction-card" :body-style="{ padding: '0px' }">
             <div class="card-header">
-                <h2 class="title">交易记录</h2>
+                <h2 class="title title-with-bar">交易记录</h2>
                 <div class="header-actions">
                     <el-input
                         v-model="searchQuery"
@@ -202,7 +202,7 @@ export default {
             }
         })
 
-        // 返回需要在模板中使用的数据和方法
+        // 返回��要在模板中使用的数据和方法
         return {
             transactionList,
             loading,
@@ -274,8 +274,27 @@ export default {
 .title {
     margin: 0;
     color: #1f2937;
-    font-size: 20px;
     font-weight: 500;
+}
+
+.title-with-bar {
+    position: relative;
+    padding-left: 12px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+.title-with-bar::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 20px;
+    background-color: #409EFF;
+    border-radius: 2px;
 }
 
 .header-actions {

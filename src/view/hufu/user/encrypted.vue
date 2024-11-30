@@ -5,7 +5,7 @@
                 <div class="card-header">
                     <div class="title-wrapper">
                         <el-icon class="title-icon"><Lock /></el-icon>
-                        <span class="title-text">加密代理转账</span>
+                        <span class="title-text title-with-bar">加密代理转账</span>
                     </div>
                     <div class="security-badge">
                         <el-icon><Lock /></el-icon>
@@ -743,5 +743,25 @@ export default {
 .encryption-section {
     min-width: 0;
     max-width: 100%;
+}
+
+.title-with-bar {
+    position: relative;
+    padding-left: 12px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+.title-with-bar::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 20px;
+    background: #409EFF;
+    border-radius: 2px;
 }
 </style> 

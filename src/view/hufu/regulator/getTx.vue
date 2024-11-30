@@ -5,119 +5,149 @@
         <el-card class="transaction-form">
           <template #header>
             <div class="card-header">
-              <span>获取加密交易记录</span>
-              <el-icon class="header-icon"><Search /></el-icon>
+              <div class="header-left">
+                <span class="title-with-bar">获取加密交易记录</span>
+                <el-icon class="header-icon"><Search /></el-icon>
+              </div>
             </div>
           </template>
 
-          <el-form :model="formData" ref="formRef" label-width="120px">
-            <el-form-item label="钱包ID" prop="wallet_id">
-              <el-input 
-                v-model="formData.wallet_id" 
-                placeholder="请输入钱包ID"
-                :prefix-icon="Wallet"
-              />
-            </el-form-item>
-            
-            <el-form-item label="私钥" prop="private_key">
-              <el-input 
-                v-model="formData.private_key"
-                placeholder="请输入私钥"
-                :prefix-icon="Lock"
-                type="password"
-                show-password
-              />
-            </el-form-item>
+          <el-form :model="formData" ref="formRef" label-width="120px" class="search-form">
+            <el-row :gutter="30">
+              <el-col :span="14">
+                <el-form-item label="钱包私钥" prop="private_key">
+                  <el-input 
+                    v-model="formData.private_key"
+                    placeholder="请输入私钥"
+                    :prefix-icon="Lock"
+                    type="textarea"
+                    :rows="8"
+                    resize="none"
+                    show-password
+                    class="private-key-input"
+                  />
+                </el-form-item>
+              </el-col>
+              
+              <el-col :span="10">
+                <div class="right-form-content">
+                  <el-form-item label="钱包ID" prop="wallet_id">
+                    <el-input 
+                      v-model="formData.wallet_id" 
+                      placeholder="请输入钱包ID"
+                      :prefix-icon="Wallet"
+                      class="wallet-id-input"
+                    />
+                  </el-form-item>
 
-            <el-form-item>
-              <el-button 
-                type="primary" 
-                @click="fetchTransactions"
-                :icon="Search"
-                class="submit-button"
-              >
-                获取交易
-              </el-button>
-            </el-form-item>
+                  <el-form-item class="submit-form-item">
+                    <el-button 
+                      type="primary" 
+                      @click="fetchTransactions"
+                      :icon="Search"
+                      class="submit-button"
+                    >
+                      获取交易记录
+                    </el-button>
+                  </el-form-item>
+                </div>
+              </el-col>
+            </el-row>
           </el-form>
         </el-card>
       </el-col>
     </el-row>
 
-    <el-row style="margin-top: 20px">
+    <el-row style="margin-top: 24px">
       <el-col :span="24">
         <el-card v-if="transactions.length" class="transaction-list">
           <template #header>
             <div class="card-header">
-              <span>加密交易记录</span>
-              <div>
-                <el-button 
-                  type="primary"
-                  @click="decryptAllData"
-                  :loading="decrypting"
-                >
-                  解密数据
-                </el-button>
-                <el-tag type="info" class="record-count" style="margin-left: 10px">
+              <div class="header-left">
+                <span>交易记录</span>
+                <el-tag type="success" effect="dark" class="record-count">
                   共 {{ transactions.length }} 条记录
                 </el-tag>
               </div>
+              <el-button 
+                type="primary"
+                @click="decryptAllData"
+                :loading="decrypting"
+                class="decrypt-button"
+                v-if="!showDecrypted"
+              >
+                <el-icon><Lock /></el-icon>
+                解密数据
+              </el-button>
             </div>
           </template>
 
-          <!-- 加密数据表格 -->
-          <el-table 
-            v-if="!showDecrypted"
-            :data="transactions" 
-            style="width: 100%"
-            :stripe="true"
-            :border="true"
-          >
-            <el-table-column prop="transaction_id" label="交易ID" width="100" />
-            <el-table-column prop="encrypted_from_wallet_id" label="加密发送方钱包ID" min-width="200">
-              <template #default="scope">
-                {{ scope.row.encrypted_from_wallet_id?.substring(0, 100) + '...' }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="encrypted_to_wallet_id" label="加密接收方钱包ID" min-width="200">
-              <template #default="scope">
-                {{ scope.row.encrypted_to_wallet_id?.substring(0, 100) + '...' }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="encrypted_amount" label="加密金额" min-width="200">
-              <template #default="scope">
-                {{ scope.row.encrypted_amount?.substring(0, 100) + '...' }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="CreatedAt" label="创建时间" width="180">
-              <template #default="scope">
-                {{ formatTime(scope.row.CreatedAt) }}
-              </template>
-            </el-table-column>
-          </el-table>
+          <!-- 交易记录表格 -->
+          <div class="table-container">
+            <!-- 加密数据表格 -->
+            <div class="encrypted-table">
+              <div class="table-title">
+                <el-icon><Lock /></el-icon>
+                <span>加密数据</span>
+              </div>
+              <el-table 
+                :data="transactions" 
+                style="width: 100%"
+                :stripe="true"
+                :border="true"
+              >
+                <el-table-column prop="transaction_id" label="交易ID" width="120" fixed />
+                <el-table-column prop="encrypted_from_wallet_id" label="加密发送方钱包ID" min-width="250">
+                  <template #default="scope">
+                    {{ scope.row.encrypted_from_wallet_id?.substring(0, 100) + '...' }}
+                  </template>
+                </el-table-column>
+                <el-table-column prop="encrypted_to_wallet_id" label="加密接收方钱包ID" min-width="250">
+                  <template #default="scope">
+                    {{ scope.row.encrypted_to_wallet_id?.substring(0, 100) + '...' }}
+                  </template>
+                </el-table-column>
+                <el-table-column prop="encrypted_amount" label="加密金额" min-width="250">
+                  <template #default="scope">
+                    {{ scope.row.encrypted_amount?.substring(0, 100) + '...' }}
+                  </template>
+                </el-table-column>
+                <el-table-column prop="CreatedAt" label="创建时间" width="180" fixed="right">
+                  <template #default="scope">
+                    {{ formatTime(scope.row.CreatedAt) }}
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
 
-          <!-- 解密后的数据表格 -->
-          <el-table 
-            v-else
-            :data="decryptedTransactions" 
-            style="width: 100%"
-            :stripe="true"
-            :border="true"
-          >
-            <el-table-column prop="transaction_id" label="交易ID" width="100" />
-            <el-table-column prop="from_wallet_id" label="发送方钱包ID" width="150" />
-            <el-table-column prop="to_wallet_id" label="接收方钱包ID" width="150" />
-            <el-table-column prop="amount" label="金额" width="150">
-              <template #default="scope">
-                {{ formatAmount(scope.row.amount) }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="CreatedAt" label="创建时间" width="180">
-              <template #default="scope">
-                {{ formatTime(scope.row.CreatedAt) }}
-              </template>
-            </el-table-column>
-          </el-table>
+            <!-- 解密后的数据表格 -->
+            <div v-if="showDecrypted" class="decrypted-table">
+              <div class="table-title">
+                <el-icon><Unlock /></el-icon>
+                <span>解密数据</span>
+              </div>
+              <el-table 
+                :data="decryptedTransactions" 
+                style="width: 100%"
+                :stripe="true"
+                :border="true"
+              >
+                <el-table-column prop="transaction_id" label="交易ID" width="120" fixed />
+                <el-table-column prop="from_wallet_id" label="发送方钱包ID" min-width="250" />
+                <el-table-column prop="to_wallet_id" label="接收方钱包ID" min-width="250" />
+                <el-table-column prop="amount" label="金额" min-width="250">
+                  <template #default="scope">
+                    {{ formatAmount(scope.row.amount) }}
+                  </template>
+                </el-table-column>
+                <el-table-column prop="CreatedAt" label="创建时间" width="180" fixed="right">
+                  <template #default="scope">
+                    {{ formatTime(scope.row.CreatedAt) }}
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </div>
         </el-card>
       </el-col>
     </el-row>
@@ -129,7 +159,7 @@
   import axios from 'axios'
   import { ElMessage } from 'element-plus'
   import dayjs from 'dayjs'
-  import { Search, Wallet, Lock } from '@element-plus/icons-vue'
+  import { Search, Wallet, Lock, Unlock } from '@element-plus/icons-vue'
   
   const formRef = ref(null)
   const formData = reactive({
@@ -243,109 +273,134 @@
   <style scoped>
   .transaction-page {
     padding: 24px;
-    min-height: 100vh;
+    min-height: calc(100vh - 48px);
     background-color: #f5f7fa;
   }
   
   .transaction-form, .transaction-list {
     height: 100%;
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+  }
+  
+  .transaction-form:hover, .transaction-list:hover {
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
   }
   
   .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 0;
+    padding: 16px 0;
+  }
+  
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
   
   .card-header span {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 600;
-    color: #2c3e50;
+    color: #1a1a1a;
+    letter-spacing: 0.5px;
   }
   
   .header-icon {
-    font-size: 20px;
+    font-size: 22px;
     color: #409EFF;
+  }
+  
+  .search-form {
+    padding: 20px 0;
+  }
+  
+  .private-key-input :deep(.el-textarea__inner) {
+    border-radius: 12px;
+    padding: 12px;
+    font-family: monospace;
+    background-color: #fafafa;
+    transition: all 0.3s ease;
+  }
+  
+  .private-key-input :deep(.el-textarea__inner:focus) {
+    background-color: #fff;
+    box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1);
+  }
+  
+  .wallet-id-input :deep(.el-input__wrapper) {
+    border-radius: 12px;
+    padding: 8px 16px;
+    background-color: #fafafa;
+  }
+  
+  .right-form-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .submit-form-item {
+    margin-top: auto;
+    margin-bottom: 0;
   }
   
   .submit-button {
     width: 100%;
-    padding: 12px;
+    height: 44px;
     font-size: 16px;
     font-weight: 500;
     letter-spacing: 1px;
-    border-radius: 8px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
   }
   
-  .record-count {
-    font-size: 14px;
-    padding: 6px 12px;
-    border-radius: 16px;
-  }
-  
-  :deep(.el-input__wrapper) {
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  }
-  
-  :deep(.el-input__wrapper:hover) {
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  }
-  
-  :deep(.el-table) {
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  
-  :deep(.el-table th) {
-    background-color: #f5f7fa;
-    font-weight: 600;
-    color: #2c3e50;
-  }
-  
-  :deep(.el-table--striped .el-table__row--striped td) {
-    background-color: #fafafa;
-  }
-  
-  :deep(.el-tag) {
-    padding: 4px 12px;
-    height: 28px;
-    line-height: 20px;
-    border-radius: 14px;
+  .decrypt-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 12px;
     font-weight: 500;
   }
   
-  :deep(.el-tag--success) {
-    background-color: #f0f9eb;
-    border-color: #e1f3d8;
-    color: #67c23a;
+  .record-count {
+    margin-left: 12px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 500;
   }
   
-  :deep(.el-tag--danger) {
-    background-color: #fef0f0;
-    border-color: #fde2e2;
-    color: #f56c6c;
+  :deep(.el-table) {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
   }
   
-  :deep(.el-tag--info) {
-    background-color: #f4f4f5;
-    border-color: #e9e9eb;
-    color: #909399;
+  :deep(.el-table th) {
+    background-color: #f8fafd;
+    font-weight: 600;
+    color: #1a1a1a;
+    padding: 16px 12px;
   }
   
-  .decrypted-data {
-    margin-top: 8px;
-    padding: 4px 8px;
-    background-color: #f0f9eb;
-    border-radius: 4px;
-    color: #67c23a;
-    font-size: 13px;
+  :deep(.el-table td) {
+    padding: 16px 12px;
   }
   
+  :deep(.el-table--striped .el-table__row--striped td) {
+    background-color: #fafbfd;
+  }
+  
+  /* 响应式优化 */
   @media (max-width: 768px) {
+    .transaction-page {
+      padding: 16px;
+    }
+    
     .el-row {
       margin: 0 !important;
     }
@@ -354,9 +409,85 @@
       padding: 0 !important;
     }
     
-    .transaction-form, .transaction-list {
-      margin-bottom: 20px;
+    .card-header span {
+      font-size: 18px;
     }
+    
+    .submit-button {
+      height: 40px;
+      font-size: 15px;
+    }
+  }
+  
+  /* 添加新的样式 */
+  .table-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  .encrypted-table,
+  .decrypted-table {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  }
+  
+  .table-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #ebeef5;
+  }
+  
+  .table-title .el-icon {
+    font-size: 18px;
+    color: #409EFF;
+  }
+  
+  .table-title span {
+    font-size: 16px;
+    font-weight: 500;
+    color: #1a1a1a;
+  }
+  
+  .decrypted-table {
+    border: 1px solid #67c23a;
+    position: relative;
+  }
+  
+  .decrypted-table::before {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-bottom: 12px solid #67c23a;
+  }
+  
+  .title-with-bar {
+    position: relative;
+    padding-left: 12px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .title-with-bar::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 20px;
+    background-color: #409EFF;
+    border-radius: 2px;
   }
   </style>
   

@@ -29,8 +29,8 @@
         <el-card class="recent-transfers material-card">
           <template #header>
             <div class="transfer-header">
-              <span class="header-title">
-                <el-icon><Document /></el-icon>
+              <span class="header-title title-with-bar">
+                <el-icon class="title-icon"><Document /></el-icon>
                 最近转账记录
               </span>
               <el-button 
@@ -718,5 +718,22 @@ export default {
 :deep(.el-card__header) {
   border-bottom: 1px solid rgba(0,0,0,0.12);
   padding: 0;
+}
+
+.title-with-bar {
+  position: relative;
+  padding-left: 12px;
+}
+
+.title-with-bar::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 16px;
+  background: #1976d2;
+  border-radius: 2px;
 }
 </style>

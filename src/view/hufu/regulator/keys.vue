@@ -3,7 +3,9 @@
       <el-card class="apply-form">
         <template #header>
           <div class="card-header">
-            <span>申请密钥</span>
+            <div class="title-with-bar">
+              <span>申请密钥</span>
+            </div>
           </div>
         </template>
   
@@ -48,7 +50,9 @@
       <el-card class="progress-table">
         <template #header>
           <div class="card-header">
-            <span>申请记录</span>
+            <div class="title-with-bar">
+              <span>申请记录</span>
+            </div>
             <el-button type="primary" link @click="fetchApplications">刷新</el-button>
           </div>
         </template>
@@ -255,7 +259,7 @@
       if (formData.evidence && formData.evidence instanceof File) {
         formDataToSend.append('evidence', formData.evidence)
       } else {
-        throw new Error('请选择有���证明文件')
+        throw new Error('请选择有证明文件')
       }
 
       const response = await axios.post('http://45.8.113.140:3338/api/v1/regulator/private-key', formDataToSend, {
@@ -442,6 +446,74 @@
     .el-message-box__header {
       padding: 20px;
     }
+  }
+  
+  .el-form {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .el-form-item :deep(.el-input) {
+    width: 100%;
+    height: 40px;
+    
+    .el-input__wrapper {
+      height: 40px;
+    }
+    
+    .el-input__inner {
+      height: 40px;
+      line-height: 40px;
+      font-size: 14px;
+    }
+  }
+  
+  .el-form-item :deep(.el-button) {
+    height: 40px;
+    padding: 0 20px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .evidence-uploader {
+    :deep(.el-upload) {
+      width: 100%;
+    }
+    
+    :deep(.el-button) {
+      width: 120px;
+      height: 40px;
+    }
+  }
+  
+  .el-form-item:last-child {
+    margin-top: 30px;
+    
+    :deep(.el-button) {
+      width: 120px;
+    }
+  }
+  
+  .title-with-bar {
+    position: relative;
+    padding-left: 12px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .title-with-bar::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 18px;
+    background-color: #409EFF;
+    border-radius: 2px;
   }
   </style>
   

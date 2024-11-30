@@ -1,79 +1,127 @@
-
 <template>
-  <div>
-    <div class="gva-search-box">
-      <el-form ref="elSearchFormRef" :inline="true" :model="searchInfo" class="demo-form-inline" :rules="searchRule" @keyup.enter="onSubmit">
-      <el-form-item label="创建日期" prop="createdAt">
-      <template #label>
-        <span>
-          创建日期
-          <el-tooltip content="搜索范围是开始日期（包含）至结束日期（不包含）">
-            <el-icon><QuestionFilled /></el-icon>
-          </el-tooltip>
-        </span>
-      </template>
-      <el-date-picker v-model="searchInfo.startCreatedAt" type="datetime" placeholder="开始日期" :disabled-date="time=> searchInfo.endCreatedAt ? time.getTime() > searchInfo.endCreatedAt.getTime() : false"></el-date-picker>
-       —
-      <el-date-picker v-model="searchInfo.endCreatedAt" type="datetime" placeholder="结束日期" :disabled-date="time=> searchInfo.startCreatedAt ? time.getTime() < searchInfo.startCreatedAt.getTime() : false"></el-date-picker>
-      </el-form-item>
-      
-
-        <template v-if="showAllQuery">
-          <!-- 将需要控制显示状态的查询条件添加到此范围内 -->
-        </template>
-
-        <el-form-item>
-          <el-button type="primary" icon="search" @click="onSubmit">查询</el-button>
-          <el-button icon="refresh" @click="onReset">重置</el-button>
-          <el-button link type="primary" icon="arrow-down" @click="showAllQuery=true" v-if="!showAllQuery">展开</el-button>
-          <el-button link type="primary" icon="arrow-up" @click="showAllQuery=false" v-else>收起</el-button>
-        </el-form-item>
-      </el-form>
-    </div>
+  <div class="gva-container">
     <div class="gva-table-box">
         <div class="gva-btn-list">
-            <el-button  type="primary" icon="plus" @click="openDialog">新增</el-button>
-            <el-button  icon="delete" style="margin-left: 10px;" :disabled="!multipleSelection.length" @click="onDelete">删除</el-button>
-            
+            <h2 class="title-with-bar">发票管理</h2>
         </div>
-        <el-table
-        ref="multipleTable"
-        style="width: 100%"
-        tooltip-effect="dark"
-        :data="tableData"
-        row-key="ID"
-        @selection-change="handleSelectionChange"
-        >
-        <el-table-column type="selection" width="55" />
+        <el-divider />
+
+        <!-- 搜索框部分 -->
         
-        <el-table-column align="left" label="日期" prop="createdAt" width="180">
-            <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
-        </el-table-column>
-        
-          <el-table-column align="left" label="发票号码" prop="invoice_id" width="120" />
-          <el-table-column align="left" label="开票日期" prop="issue_date" width="120" />
-          <el-table-column align="left" label="卖方名称" prop="seller_name" width="120" />
-          <el-table-column align="left" label="卖方税号" prop="seller_tax_id" width="120" />
-          <el-table-column align="left" label="项目名称" prop="item_name" width="120" />
-          <el-table-column align="left" label="单价" prop="unit_price" width="120" />
-          <el-table-column align="left" label="数量" prop="quantity" width="120" />
-          <el-table-column align="left" label="金额" prop="amount" width="120" />
-          <el-table-column align="left" label="税率" prop="tax_rate" width="120" />
-          <el-table-column align="left" label="税额" prop="tax_amount" width="120" />
-          <el-table-column align="left" label="合计金额" prop="total_amount" width="120" />
-          <el-table-column align="left" label="发票状态" prop="invoice_status" width="120" />
-          <el-table-column align="left" label="备注" prop="remarks" width="120" />
-          <el-table-column align="left" label="发票类型" prop="invoice_type" width="120" />
-        <el-table-column align="left" label="操作" fixed="right" min-width="240">
-            <template #default="scope">
-            <el-button  type="primary" link class="table-button" @click="getDetails(scope.row)"><el-icon style="margin-right: 5px"><InfoFilled /></el-icon>查看详情</el-button>
-            <el-button  type="primary" link icon="edit" class="table-button" @click="updateInvoicesFunc(scope.row)">变更</el-button>
-            <el-button  type="primary" link icon="delete" @click="deleteRow(scope.row)">删除</el-button>
+      <div class="gva-search-box">
+        <el-form ref="elSearchFormRef" :inline="true" :model="searchInfo" class="demo-form-inline" :rules="searchRule"
+          @keyup.enter="onSubmit">
+          <el-form-item label="创建日期" prop="createdAt">
+            <template #label>
+              <span>
+                创建日期
+                <el-tooltip content="搜索范围是开始日期（包含）至结束日期（不包含）">
+                  <el-icon>
+                    <QuestionFilled />
+                  </el-icon>
+                </el-tooltip>
+              </span>
             </template>
-        </el-table-column>
+            <el-date-picker v-model="searchInfo.startCreatedAt" type="datetime" placeholder="开始日期"
+              :disabled-date="time => searchInfo.endCreatedAt ? time.getTime() > searchInfo.endCreatedAt.getTime() : false"></el-date-picker>
+            —
+            <el-date-picker v-model="searchInfo.endCreatedAt" type="datetime" placeholder="结束日期"
+              :disabled-date="time => searchInfo.startCreatedAt ? time.getTime() < searchInfo.startCreatedAt.getTime() : false"></el-date-picker>
+          </el-form-item>
+
+
+          <template v-if="showAllQuery">
+            <!-- 将需要控制显示状态的查询条件添加到此范围内 -->
+          </template>
+
+          <el-form-item>
+            <el-button type="primary" icon="search" @click="onSubmit">查询</el-button>
+            <el-button icon="refresh" @click="onReset">重置</el-button>
+            <el-button link type="primary" icon="arrow-down" @click="showAllQuery = true"
+              v-if="!showAllQuery">展开</el-button>
+            <el-button link type="primary" icon="arrow-up" @click="showAllQuery = false" v-else>收起</el-button>
+          </el-form-item>
+        </el-form>
+
+      </div>
+
+        <!-- 表格操作按钮 -->
+        <div class="gva-btn-list">
+          <el-button type="primary" icon="plus" @click="openDialog">新增</el-button>
+          <el-button icon="delete" :disabled="!multipleSelection.length" @click="onDelete">删除</el-button>
+        </div>
+
+        <!-- 表格部分 -->
+        <el-table
+          ref="multipleTable"
+          style="width: 100%"
+          tooltip-effect="dark"
+          :data="tableData"
+          row-key="ID"
+          @selection-change="handleSelectionChange"
+          class="my-table"
+          border
+          stripe
+          highlight-current-row
+        >
+          <el-table-column type="selection" width="55" align="center" />
+          
+          <el-table-column align="center" label="日期" prop="createdAt" min-width="150">
+            <template #default="scope">
+              <span class="time-cell">{{ formatDate(scope.row.CreatedAt) }}</span>
+            </template>
+          </el-table-column>
+          
+          <el-table-column align="center" label="发票号码" prop="invoice_id" min-width="120">
+            <template #default="scope">
+              <el-tag size="small" effect="plain">{{ scope.row.invoice_id }}</el-tag>
+            </template>
+          </el-table-column>
+
+          
+          <el-table-column align="center" label="卖方名称" prop="seller_name" min-width="150" />
+          <el-table-column align="center" label="卖方税号" prop="seller_tax_id" min-width="150" />
+          
+          <el-table-column align="center" label="金额" prop="amount" min-width="120">
+            <template #default="scope">
+              <span class="amount">¥{{ scope.row.amount }}</span>
+            </template>
+          </el-table-column>
+
+          <el-table-column align="center" label="发票状态" prop="invoice_status" min-width="100">
+            <template #default="scope">
+              <el-tag 
+                :type="scope.row.invoice_status ===  'success' "
+                size="small"
+              >
+                {{ "已开具" }}
+              </el-tag>
+            </template>
+          </el-table-column>
+
+          <el-table-column align="center" label="操作" fixed="right" min-width="200">
+            <template #default="scope">
+              <div class="operation-cell">
+                <el-button type="primary" link @click="getDetails(scope.row)">
+                  <el-icon><InfoFilled /></el-icon>
+                  <span>详情</span>
+                </el-button>
+                <el-button type="danger" link @click="deleteRow(scope.row)">
+                  <el-icon><Delete /></el-icon>
+                  <span>删除</span>
+                </el-button>
+                <el-button type="success" link @click="downloadInvoice(scope.row)">
+                  <el-icon><Download /></el-icon>
+                  <span>下载</span>
+                </el-button>
+              </div>
+            </template>
+          </el-table-column>
         </el-table>
+
+        <!-- 分页部分 -->
         <div class="gva-pagination">
-            <el-pagination
+          <el-pagination
             layout="total, sizes, prev, pager, next, jumper"
             :current-page="page"
             :page-size="pageSize"
@@ -81,113 +129,46 @@
             :total="total"
             @current-change="handleCurrentChange"
             @size-change="handleSizeChange"
-            />
+          />
         </div>
     </div>
-    <el-drawer destroy-on-close size="800" v-model="dialogFormVisible" :show-close="false" :before-close="closeDialog">
-       <template #header>
-              <div class="flex justify-between items-center">
-                <span class="text-lg">{{type==='create'?'添加':'修改'}}</span>
-                <div>
-                  <el-button type="primary" @click="enterDialog">确 定</el-button>
-                  <el-button @click="closeDialog">取 消</el-button>
-                </div>
-              </div>
-            </template>
 
-          <el-form :model="formData" label-position="top" ref="elFormRef" :rules="rule" label-width="80px">
-            <!-- <el-form-item label="发票号码:"  prop="invoice_id" >
-              <el-input v-model="formData.invoice_id" :clearable="true"  placeholder="请输入发票号码" />
-            </el-form-item> -->
-            <el-form-item label="开票日期:"  prop="issue_date" >
-              <el-input v-model="formData.issue_date" :clearable="true"  placeholder="请输入开票日期" />
-            </el-form-item>
-            <el-form-item label="卖方名称:"  prop="seller_name" >
-              <el-input v-model="formData.seller_name" :clearable="true"  placeholder="请输入卖方名称" />
-            </el-form-item>
-            <el-form-item label="卖方税号:"  prop="seller_tax_id" >
-              <el-input v-model="formData.seller_tax_id" :clearable="true"  placeholder="请输入卖方税号" />
-            </el-form-item>
-            <el-form-item label="项目名称:"  prop="item_name" >
-              <el-input v-model="formData.item_name" :clearable="true"  placeholder="请输入项目名称" />
-            </el-form-item>
-            <el-form-item label="单价:"  prop="unit_price" >
-              <el-input-number v-model="formData.unit_price"  style="width:100%" :precision="2" :clearable="true"  />
-            </el-form-item>
-            <el-form-item label="数量:"  prop="quantity" >
-              <el-input v-model.number="formData.quantity" :clearable="true" placeholder="请输入数量" />
-            </el-form-item>
-            <el-form-item label="金额:"  prop="amount" >
-              <el-input-number v-model="formData.amount"  style="width:100%" :precision="2" :clearable="true"  />
-            </el-form-item>
-            <el-form-item label="税率:"  prop="tax_rate" >
-              <el-input-number v-model="formData.tax_rate"  style="width:100%" :precision="2" :clearable="true"  />
-            </el-form-item>
-            <el-form-item label="税额:"  prop="tax_amount" >
-              <el-input-number v-model="formData.tax_amount"  style="width:100%" :precision="2" :clearable="true"  />
-            </el-form-item>
-            <el-form-item label="合计金额:"  prop="total_amount" >
-              <el-input-number v-model="formData.total_amount"  style="width:100%" :precision="2" :clearable="true"  />
-            </el-form-item>
-            <el-form-item label="发票状态:"  prop="invoice_status" >
-              <el-input v-model="formData.invoice_status" :clearable="true"  placeholder="请输入发票状态" />
-            </el-form-item>
-            <el-form-item label="备注:"  prop="remarks" >
-              <el-input v-model="formData.remarks" :clearable="true"  placeholder="请输入备注" />
-            </el-form-item>
-            <el-form-item label="发票类型:"  prop="invoice_type" >
-              <el-input v-model="formData.invoice_type" :clearable="true"  placeholder="请输入发票类型" />
-            </el-form-item>
-          </el-form>
-    </el-drawer>
-
-    <el-drawer destroy-on-close size="800" v-model="detailShow" :show-close="true" :before-close="closeDetailShow">
-            <el-descriptions :column="1" border>
-                    <el-descriptions-item label="发票号码">
-                        {{ detailFrom.invoice_id }}
-                    </el-descriptions-item>
-                    <el-descriptions-item label="开票日期">
-                        {{ detailFrom.issue_date }}
-                    </el-descriptions-item>
-                    <el-descriptions-item label="卖方名称">
-                        {{ detailFrom.seller_name }}
-                    </el-descriptions-item>
-                    <el-descriptions-item label="卖方税号">
-                        {{ detailFrom.seller_tax_id }}
-                    </el-descriptions-item>
-                    <el-descriptions-item label="项目名称">
-                        {{ detailFrom.item_name }}
-                    </el-descriptions-item>
-                    <el-descriptions-item label="单价">
-                        {{ detailFrom.unit_price }}
-                    </el-descriptions-item>
-                    <el-descriptions-item label="数量">
-                        {{ detailFrom.quantity }}
-                    </el-descriptions-item>
-                    <el-descriptions-item label="金额">
-                        {{ detailFrom.amount }}
-                    </el-descriptions-item>
-                    <el-descriptions-item label="税率">
-                        {{ detailFrom.tax_rate }}
-                    </el-descriptions-item>
-                    <el-descriptions-item label="税额">
-                        {{ detailFrom.tax_amount }}
-                    </el-descriptions-item>
-                    <el-descriptions-item label="合计金额">
-                        {{ detailFrom.total_amount }}
-                    </el-descriptions-item>
-                    <el-descriptions-item label="发票状态">
-                        {{ detailFrom.invoice_status }}
-                    </el-descriptions-item>
-                    <el-descriptions-item label="备注">
-                        {{ detailFrom.remarks }}
-                    </el-descriptions-item>
-                    <el-descriptions-item label="发票类型">
-                        {{ detailFrom.invoice_type }}
-                    </el-descriptions-item>
-            </el-descriptions>
-        </el-drawer>
-
+    <!-- 添加详情弹窗组件 -->
+    <el-dialog
+      v-model="detailShow"
+      title="发票详情"
+      width="50%"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+    >
+      <el-descriptions :column="2" border>
+        <el-descriptions-item label="发票号码">{{ detailFrom.invoice_id }}</el-descriptions-item>
+        <el-descriptions-item label="开票日期">{{ detailFrom.issue_date }}</el-descriptions-item>
+        <el-descriptions-item label="卖方名称">{{ detailFrom.seller_name }}</el-descriptions-item>
+        <el-descriptions-item label="卖方税号">{{ detailFrom.seller_tax_id }}</el-descriptions-item>
+        <el-descriptions-item label="项目名称">{{ detailFrom.item_name }}</el-descriptions-item>
+        <el-descriptions-item label="单价">¥{{ detailFrom.unit_price }}</el-descriptions-item>
+        <el-descriptions-item label="数量">{{ detailFrom.quantity }}</el-descriptions-item>
+        <el-descriptions-item label="金额">¥{{ detailFrom.amount }}</el-descriptions-item>
+        <el-descriptions-item label="税率">{{ detailFrom.tax_rate }}%</el-descriptions-item>
+        <el-descriptions-item label="税额">¥{{ detailFrom.tax_amount }}</el-descriptions-item>
+        <el-descriptions-item label="合计金额">¥{{ detailFrom.total_amount }}</el-descriptions-item>
+        <el-descriptions-item label="发票状态">
+          <el-tag :type="detailFrom.invoice_status === 'success'">
+            {{ "已开具" }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="发票类型">{{ detailFrom.invoice_type }}</el-descriptions-item>
+        <el-descriptions-item label="备注">{{ detailFrom.remarks }}</el-descriptions-item>
+      </el-descriptions>
+      
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="closeDetailShow">关闭</el-button>
+          <el-button type="primary" @click="downloadInvoice(detailFrom)">下载发票</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -483,9 +464,106 @@ const closeDetailShow = () => {
   detailFrom.value = {}
 }
 
+// 添加下载发票功能
+const downloadInvoice = (row) => {
+  const content = `发票记录
+------------------------
+发票号码: ${row.invoice_id}
+开票日期: ${row.issue_date}
+卖方名称: ${row.seller_name}
+卖方税号: ${row.seller_tax_id}
+项目名称: ${row.item_name}
+单价: ${row.unit_price}
+数量: ${row.quantity}
+金额: ${row.amount}
+税率: ${row.tax_rate}
+税额: ${row.tax_amount}
+合计金额: ${row.total_amount}
+发票状态: ${row.invoice_status}
+备注: ${row.remarks}
+发票类型: ${row.invoice_type}
+------------------------`
+
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+  const url = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `发票记录_${row.invoice_id}.txt`
+  link.click()
+  window.URL.revokeObjectURL(url)
+}
 
 </script>
 
-<style>
+<style scoped>
+/* 复用异常交易页面的样式并添加发票特定样式 */
+.gva-container {
+  padding: 24px;
+}
 
+.gva-table-box {
+  padding: 24px;
+  background-color: var(--el-bg-color);
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,21,41,.08);
+}
+
+/* 其他样式保持与异常交易页面一致 */
+/* ... */
+
+/* 发票特定样式 */
+.amount {
+  font-family: var(--el-font-family-monospace);
+  color: var(--el-color-success);
+  font-weight: bold;
+}
+
+.operation-cell {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.operation-cell :deep(.el-button) {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.title-with-bar {
+  position: relative;
+  padding-left: 12px;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+  margin: 0;
+  padding: 8px 0 8px 12px;
+}
+
+.title-with-bar::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 20px;
+  background: var(--el-color-primary);
+  border-radius: 2px;
+}
+
+/* 其他样式与异常交易页面保持一致 */
+/* ... */
+
+/* 添加详情弹窗的样式 */
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+:deep(.el-descriptions__label) {
+  width: 120px;
+  justify-content: flex-end;
+}
 </style>

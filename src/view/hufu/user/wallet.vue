@@ -6,7 +6,7 @@
                 <el-card class="wallet-card" shadow="hover">
                     <template #header>
                         <div class="card-header">
-                            <span>钱包信息</span>
+                            <span class="title-with-bar">钱包信息</span>
                             <el-button type="primary" link @click="handleEdit">
                                 编辑名称
                             </el-button>
@@ -37,7 +37,7 @@
                 <el-card class="balance-card" shadow="hover">
                     <template #header>
                         <div class="card-header">
-                            <span>账户余额</span>
+                            <span class="title-with-bar">数字人民币余额</span>
                         </div>
                     </template>
                     <div class="balance-info">
@@ -56,7 +56,7 @@
                 <el-card class="stats-card" shadow="hover">
                     <template #header>
                         <div class="card-header">
-                            <span>交易统计</span>
+                            <span class="title-with-bar">交易统计</span>
                         </div>
                     </template>
                     <div class="stats-info">
@@ -359,8 +359,6 @@ export default {
 }
 
 .card-header span {
-    font-size: 16px;
-    font-weight: 600;
     color: #303133;
 }
 
@@ -487,5 +485,25 @@ export default {
 
 :deep(.el-card__body) {
     padding: 0;
+}
+
+.title-with-bar {
+    position: relative;
+    padding-left: 12px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+.title-with-bar::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 20px;
+    background: #409EFF;
+    border-radius: 2px;
 }
 </style>
