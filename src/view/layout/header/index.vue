@@ -1,8 +1,3 @@
-<!--
-    @auther: bypanghu<bypanghu@163.com>
-    @date: 2024/5/7
-!-->
-
 <template>
   <div class="flex justify-between fixed top-0 left-0 right-0 z-10 h-16 bg-white text-slate-700 dark:text-slate-300  dark:bg-slate-900 shadow dark:shadow-gray-700 items-center px-2">
     <div
@@ -11,7 +6,7 @@
       <div class="flex items-center cursor-pointer min-w-48" @click="router.push({ path: '/' })">
         <img
           alt
-          class="h-12 bg-white rounded-full"
+          class="h-12 bg-white rounded-full ml-4"
           :src="$GIN_VUE_ADMIN.appLogo"
         >
         <div
@@ -80,9 +75,7 @@
                 </span>
               </el-dropdown-item>
             </template>
-            <el-dropdown-item icon="avatar" @click="toPerson">
-              个人信息
-            </el-dropdown-item>
+           
             <el-dropdown-item
               icon="reading-lamp"
               @click="userStore.LoginOut"
