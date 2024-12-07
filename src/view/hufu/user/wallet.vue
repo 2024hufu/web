@@ -37,7 +37,7 @@
                 <el-card class="balance-card" shadow="hover">
                     <template #header>
                         <div class="card-header">
-                            <span class="title-with-bar">数字人民币余额</span>
+                            <span class="title-with-bar">数字货币余额</span>
                         </div>
                     </template>
                     <div class="balance-info">
@@ -244,7 +244,7 @@ export default {
                 if (valid) {
                     transferLoading.value = true
                     try {
-                        const response = await axios.post('http://45.8.113.140:3338/api/v1/hufu/tx/transfer', {
+                        const response = await axios.post('http://45.8.113.140:3338/api/v1/hufu/tx/normal-transfer', {
                             from_wallet_id: walletInfo.value.ID,
                             to_wallet_id: transferForm.toWalletId,
                             amount: transferForm.amount,

@@ -368,7 +368,7 @@ export default {
             customer: item.from_wallet_id < 10 ? "混币代理" : `客户${item.from_wallet_id}`,
             amount: `¥${item.amount}`,
             status: this.getStatusText(item.status)
-          }));
+          })).sort((a, b) => new Date(b.date) - new Date(a.date)); // 按日期降序排序
         }
       } catch (error) {
         console.error('获取交易记录失败:', error);
